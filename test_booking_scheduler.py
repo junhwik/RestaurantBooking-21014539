@@ -20,6 +20,12 @@ TEST_TIME = datetime.strptime("2025/08/01 09:00", "%Y/%m/%d %H:%M")
 def booking_scheduler():
     return BookingScheduler(CAPACITY_PER_HOUR)
 
+@pytest.fixture
+def booking_scheduler_with_sms_mock():
+    booking_scheduler = BookingScheduler(CAPACITY_PER_HOUR)
+    testable_sms_sender = TestableSmsSender()
+    booking_scheduler.set_sms_sender(testable_sms_sender)
+    return booking_scheduler, testable_sms_sender
 
 def test_예약은_정시에만_가능하다_정시가_아닌경우_예약불가(booking_scheduler):
     test_time = datetime.strptime("2025/08/01 09:05", "%Y/%m/%d %H:%M")
@@ -62,12 +68,11 @@ def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capac
     assert booking_scheduler.has_schedule(new_schedule)
 
 
-def test_예약완료시_SMS는_무조건_발송(booking_scheduler):
-    testable_sms_sender = TestableSmsSender()
-    booking_scheduler.set_sms_sender(testable_sms_sender)
+def test_예약완료시_SMS는_무조건_발송(booking_scheduler_with_sms_mock):
+    booking_scheduler, sms_mock = booking_scheduler_with_sms_mock
     schedule = Schedule(TEST_TIME, UNDER_CAPACITY, TEST_CUSTOMER)
     booking_scheduler.add_schedule(schedule)
-    assert testable_sms_sender.send_called
+    assert sms_mock.send_called
 
 def test_이메일이_없는_경우에는_이메일_미발송():
     pass
