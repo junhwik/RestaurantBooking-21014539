@@ -10,7 +10,7 @@ TEST_CUSTOMER = Customer("asdf", "010-1111-2222")
 
 from communication import SmsSender, MailSender
 from booking_scheduler import BookingScheduler
-from datetime import datetime
+from datetime import datetime, timedelta
 
 TEST_TIME = datetime.strptime("2025/08/01 09:00", "%Y/%m/%d %H:%M")
 
@@ -45,8 +45,20 @@ def test_시간대별_인원제한이_있다_같은_시간대에_Capacity_초과
         booking_scheduler.add_schedule(schedule)
 
 
-def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capacity_차있어도_스케쥴_추가_성공():
-    pass
+def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capacity_차있어도_스케쥴_추가_성공(booking_scheduler):
+    schedule = Schedule(TEST_TIME, UNDER_CAPACITY, TEST_CUSTOMER)
+    booking_scheduler.add_schedule(schedule)
+    booking_scheduler.add_schedule(schedule)
+    booking_scheduler.add_schedule(schedule)
+
+    new_schedule = Schedule(TEST_TIME+timedelta(hours=1), UNDER_CAPACITY, TEST_CUSTOMER)
+    booking_scheduler.add_schedule(new_schedule)
+    booking_scheduler.add_schedule(new_schedule)
+    booking_scheduler.add_schedule(new_schedule)
+
+    assert booking_scheduler.has_schedule(schedule)
+    assert booking_scheduler.has_schedule(new_schedule)
+
 
 
 def test_예약완료시_SMS는_무조건_발송():
