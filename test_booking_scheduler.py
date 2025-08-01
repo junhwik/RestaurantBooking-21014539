@@ -3,12 +3,25 @@ import pytest
 from schedule import Customer, Schedule
 from communication import SmsSender, MailSender
 from booking_scheduler import BookingScheduler
+from datetime import datetime
 
 def test_예약은_정시에만_가능하다_정시가_아닌경우_예약불가():
-    pass
+    test_time = datetime.strptime("2025/08/01 09:05", "%Y/%m/%d %H:%M")
+    customer = Customer("asdf", "010-1111-2222")
+    schedule = Schedule(test_time, 1, customer)
+    booking_scheduler = BookingScheduler(3)
+
+    with pytest.raises(ValueError):
+        booking_scheduler.add_schedule(schedule)
 
 def test_예약은_정시에만_가능하다_정시인_경우_예약가능():
-    pass
+    test_time = datetime.strptime("2025/08/01 09:00", "%Y/%m/%d %H:%M")
+    customer = Customer("asdf", "010-1111-2222")
+    schedule = Schedule(test_time, 1, customer)
+    booking_scheduler = BookingScheduler(3)
+
+    booking_scheduler.add_schedule(schedule)
+    assert booking_scheduler.has_schedule(schedule)
 
 def test_시간대별_인원제한이_있다_같은_시간대에_Capacity_초과할_경우_예외발생():
     pass
