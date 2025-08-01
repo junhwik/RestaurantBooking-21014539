@@ -11,12 +11,15 @@ TEST_CUSTOMER = Customer("asdf", "010-1111-2222")
 from communication import SmsSender, MailSender
 from booking_scheduler import BookingScheduler
 from datetime import datetime, timedelta
+from test_communication import TestableSmsSender
 
 TEST_TIME = datetime.strptime("2025/08/01 09:00", "%Y/%m/%d %H:%M")
+
 
 @pytest.fixture
 def booking_scheduler():
     return BookingScheduler(CAPACITY_PER_HOUR)
+
 
 def test_예약은_정시에만_가능하다_정시가_아닌경우_예약불가(booking_scheduler):
     test_time = datetime.strptime("2025/08/01 09:05", "%Y/%m/%d %H:%M")
@@ -35,7 +38,6 @@ def test_예약은_정시에만_가능하다_정시인_경우_예약가능(booki
 
 
 def test_시간대별_인원제한이_있다_같은_시간대에_Capacity_초과할_경우_예외발생(booking_scheduler):
-
     schedule = Schedule(TEST_TIME, UNDER_CAPACITY, TEST_CUSTOMER)
 
     booking_scheduler.add_schedule(schedule)
@@ -51,7 +53,7 @@ def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capac
     booking_scheduler.add_schedule(schedule)
     booking_scheduler.add_schedule(schedule)
 
-    new_schedule = Schedule(TEST_TIME+timedelta(hours=1), UNDER_CAPACITY, TEST_CUSTOMER)
+    new_schedule = Schedule(TEST_TIME + timedelta(hours=1), UNDER_CAPACITY, TEST_CUSTOMER)
     booking_scheduler.add_schedule(new_schedule)
     booking_scheduler.add_schedule(new_schedule)
     booking_scheduler.add_schedule(new_schedule)
@@ -60,10 +62,12 @@ def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capac
     assert booking_scheduler.has_schedule(new_schedule)
 
 
-
-def test_예약완료시_SMS는_무조건_발송():
-    pass
-
+def test_예약완료시_SMS는_무조건_발송(booking_scheduler):
+    testable_sms_sender = TestableSmsSender()
+    booking_scheduler.set_sms_sender(testable_sms_sender)
+    schedule = Schedule(TEST_TIME, UNDER_CAPACITY, TEST_CUSTOMER)
+    booking_scheduler.add_schedule(schedule)
+    assert testable_sms_sender.send_called
 
 def test_이메일이_없는_경우에는_이메일_미발송():
     pass
